@@ -56,6 +56,11 @@ end
 data = MovieData.new
 data.load_data
 data.popularity_list
+puts "first 10 most popular:"
 puts data.most_popular.first(10)
+puts "last 10 most popular"
 puts data.most_popular.last(10)
-#puts data.most_similar(1)
+puts "first 10 most similar(1): "
+puts data.most_similar(1).first(10)
+puts "last 10 most similar(1): "
+puts data.most_similar(1).last(10)
