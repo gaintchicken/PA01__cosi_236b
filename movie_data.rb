@@ -1,47 +1,61 @@
 class MovieData
-	attr_accessor :list_of_ratings, :popularity_list
+	attr_accessor :movies, :most_popular, :users
 	def initialize
-		@list_of_ratings = Array.new
-		@popularity_list = Array.new
+		@movies = Hash.new(0)
+		@users = Hash.new{|h,k| h[k] = [] }
+		@most_popular = Array.new
 	end
 	#loads data into an array, stores each rating as a Rating object
 	def load_data
 		File.open("u.data", "r").each_line do |line|
 			a = line.split
-			rating = Rating.new(a[0].to_i, a[1].to_i, a[2].to_i)
-			@list_of_ratings.push(rating)
+			@movies[a[1].to_i] = @movies[a[1].to_i] + a[2].to_i
+
+			@users[a[0].to_i] = @users[a[0].to_i].push(a[1].to_i)
+			
 		end
 	end
 	#adds all the ratings of a movie together to determine how popular it is
 	#this means a movie with 100 1 star reviews is higher than one with 10 5 star reviews
 	def popularity(movie_id)
-		total_pop = 0
-		list_of_ratings.each do |rating|
-			if(rating.movie_id == movie_id)
-				total_pop += rating.rating
+		@movies[movie_id]
+	end
+	#fills @most_popular with most popular movies
+	def popularity_list
+		temp_hash = Hash.new(0)
+		temp_hash = @movies.clone
+		while temp_hash.size > 0
+			@most_popular.push(temp_hash.max_by{|k, v| v}[0])
+			temp_hash.delete(temp_hash.max_by{|k, v| v}[0])
+		end
+	end
+	def similarity(user1, user2)
+		similarity_number = 0
+		@users[user1].each do |movie|
+			if @users[user2].include?(movie)
+				similarity_number = 1 + similarity_number
 			end
 		end
-		return total_pop
+		similarity_number
 	end
-	#fills @popularity_list with most popular movies
-	def popularity_list
+	#go down entire list comparing all to u
+	def most_similar(u)
 		temp_hash = {}
-		@list_of_ratings.each do |rating|
-			temp_hash[rating.movie_id] = rating.rating
+		result = []
+		for i in 0..@users.size do
+			temp_hash[i] = similarity(u, i)
 		end
-		
-	end
-end
-class Rating
-	attr_accessor :user_id, :movie_id, :rating
-	def initialize(user_id, movie_id, rating)
-		@user_id = user_id
-		@movie_id = movie_id
-		@rating = rating
+		temp_hash.delete(temp_hash.max_by{|k, v| v}[0]) #top one is always going to be itself
+		while temp_hash.size > 0
+			result.push(temp_hash.max_by{|k, v| v}[0])
+			temp_hash.delete(temp_hash.max_by{|k, v| v}[0])
+		end
+		result
 	end
 end
 data = MovieData.new
 data.load_data
-puts data.list_of_ratings[1].movie_id
-puts data.popularity(242)
 data.popularity_list
+puts data.most_popular.first(10)
+puts data.most_popular.last(10)
+#puts data.most_similar(1)
