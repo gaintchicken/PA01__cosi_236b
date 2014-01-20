@@ -1,3 +1,4 @@
+#Author: Luka Milekic
 class MovieData
 	attr_accessor :movies, :most_popular, :users
 	def initialize
